@@ -324,21 +324,35 @@
 
             links.forEach(function (link) {
 
-                var sourceNode = nodes[link.source];
-                var targetNode = nodes[link.target];
+                var sourceNode = link.source;
+                var targetNode = link.target;
 
                 if (sourceNode.power >= targetNode.power && targetNode.power > 10) {
                     sourceNode.power = sourceNode.power - 10 % targetNode.power;
                     targetNode.power = targetNode.power + 10 % targetNode.power;
-                } else if (sourdeNode.power < targetNode.power && sourceNode.power > 10) {
+                } else if (sourceNode.power < targetNode.power && sourceNode.power > 10) {
                     sourceNode.power = sourceNode.power + 10 % targetNode.power;
                     targetNode.power = targetNode.power - 10 % targetNode.power
                 }
+
+                sourceNode.r = sourceNode.power / 5;
+                sourceNode.linkLength = sourceNode.power * 4; //* (Math.sqrt(w * w + h * h )) / 100,
+                sourceNode.linkNum = sourceNode.power / 10;
+
+                targetNode.r = targetNode.power / 5;
+                targetNode.linkLength = targetNode.power * 4; //* (Math.sqrt(w * w + h * h )) / 100,
+                targetNode.linkNum = targetNode.power / 10;
+
+                nodes[link.source.index] = sourceNode;
+                nodes[link.target.index] = targetNode;
+
             });
 
-            updateNodes()
             updateLinks()
-            simulate.on("tick", visualise);
+            simulation.nodes(nodes);
+            simulation.force("link").links(links);
+            simulation.alpha(1).restart();
+
         }
     </script>
 </body>
