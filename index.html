@@ -314,7 +314,10 @@
 
             // updateNodes()
             updateLinks()
-            simulation.on("tick", visualise);
+            simulation.nodes(nodes);
+            simulation.force("link").links(links);
+            simulation.alpha(1).restart();
+
         }
 
         function decentralise() {
