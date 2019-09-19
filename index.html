@@ -4,19 +4,21 @@
 <head>
     <meta charset="utf-8" />
     <title>De/Centralise</title>
-    <script type="text/javascript" src="d3/d3.js"></script>
+    <!-- <script type="text/javascript" src="d3/d3.js"></script> -->
 </head>
 
 <body>
     <div id="simulation"></div>
     <div>
-        <button onClick="centralise();">Centralise</button>
+        <button onclick="centralise();">Centralise</button>
     </div>
     <div>
-        <button onClick="decentralise();">Decentralise</button>
+        <button onclick="decentralise();">Decentralise</button>
     </div>
 
     <!-- JAVASCRIPT FILE -->
+    <script src="d3.js"></script>
+    <script src="lodash.js"></script>
     <script type="text/javascript">
 
         var w = window.innerWidth,
@@ -28,7 +30,7 @@
 
         var nodes = d3.range(100).map(d => {
             return {
-                power: Math.floor(Math.random() * 100),
+                power: Math.floor((Math.random() * 100) + 1),
                 x: Math.random() * w,
                 y: Math.random() * h,
                 linkedNum: 0
@@ -53,39 +55,119 @@
         }
 
         function updateNodes() {
-            nodes.map(d => {
+            nodes = nodes.map(d => {
                 return {
                     power: d.power,
                     x: d.x,
                     y: d.y,
                     r: d.power / 3,
                     linkLength: d.power / 10,
-                    linkNum: d.power * 10,
-                    linkedNum: 0
+                    linkNum: d.power / 10,
+                    linkedNum: d.linkedNum,
+                    vx: d.vx,
+                    vy: d.vy,
                 }
             })
         }
+
+        // function updateNodes() {
+        //     nodes = nodes.forEach(function(d) {
+        //         d.r = d.power / 3;
+        //         d.linkLength = d.power / 10;
+        //         d.linkNum = d.power * 10;
+        //     }
+        // )}
+        
 
         // links = [{source: node1, target: node2}{source: node1, target: node3}{}...]
         var links = []
 
         function updateLinks() {
-            for each node,
-                while linkedNum = linkNum, 
-                    do nothing
 
-                    while linkedNum > LinkNum,
-                        pick one of its targets, if linkedNum of target > linkNum, if power of target <= power of self
-            delete link between them from links array
-            decrease linkedNum of source and target
+            nodes.forEach(function (node, index) {
+                //why not use the links array directly?
+                var temporaryLinkAarray = links.map(function (link, index) {                        // get all links with indices
+                    return {
+                        index: index,
+                        source: link.source,
+                        target: link.target,
+                    };
+                });
 
-            while linkedNum < linkNum,
-                pick a random target, if linkedNum of target < linkNum, and distance to target <= linkLength source or target
-            create link between source and target in links array
-            increase linkedNum of source and target
+                var linksWhereNodeIsSourceOrTarget = _.filter(temporaryLinkAarray, function (link) { //filter all links for links of this node in new array
+                    return link.source == index || link.target == index;
+                });
+
+
+                //while?
+                if (node.linkedNum > node.linkNum) {
+
+
+                    linksWhereNodeIsSourceOrTarget.forEach(function (link) {
+
+                        var otherNode = link.source != index ? nodes[link.source] : nodes[link.target];   // for each link, figure out the other node
+
+                        if (otherNode.linkedNum > otherNode.linkNum && otherNode.power <= node.power) {   // if the other node also has to delete links
+                            temporaryLinkAarray.splice(link.index, 1);
+                            node.linkedNum = node.linkedNum - 1;
+                            otherNode.linkedNum = otherNode.linkedNum - 1;
+                            //stop if node.linkedNum !> node.linkNum
+                        }
+
+                    });
+
+                    links = temporaryLinkArray.map(function(link){
+                        return{
+                            source: link.source,
+                            target: link.target,
+                        }
+                    })
+
+                } else if (node.linkedNum < node.linkNum) {
+
+                    var unavailableTargets = [];
+
+                    linksWhereNodeIsSourceOrTarget.forEach(function (link) {                                //List nodes with which links exist
+                        if (link.source == index) { unavailableTargets.push(link.target) }
+                        else if (link.target == index) { unavailableTargets.push(link.source) }
+
+                    });
+
+                    availableTargets = nodes.filter(function (node) {                                         //List Targets available for new links
+                        return !unavailableTargets.includes(node);
+                    })
+
+                    availableTargets.forEach(function (target) {
+                        var x = target.x - node.x
+                        var y = target.y - node.y
+                        var distanceToTarget = Math.sqrt(x * x - y * y)
+
+                        if (target.linkedNum < target.linkNum && distanceToTarget <= target.linkLength || node.linkLength) {   // if the other node also has to delete links
+                            link = { source: node, target: target }
+                            links.push(link);
+                            node.linkedNum = node.linkedNum + 1;
+                            target.linkedNum = target.linkedNum + 1;
+                        }
+                    })
+                }
+            });
+
+            // for each node,
+            // while linkedNum = linkNum, 
+            // do nothing
+
+            // while linkedNum > LinkNum,
+            // pick one of its targets, if linkedNum of target > linkNum, if power of target <= power of self
+            // delete link between them from links array
+            // decrease linkedNum of source and target
+
+            // while linkedNum < linkNum,
+            // pick a random target, if linkedNum of target < linkNum, and distance to target <= linkLength source or target
+            // create link between source and target in links array
+            // increase linkedNum of source and target
         }
 
-        var simulate = d3.forceSimulation()
+        var simulate = d3.forceSimulation(nodes)
             .force('charge', d3.forceManyBody().strength(10))
             .force('gravity', d3.forceCenter(w / 2, h / 2))
             .force('collision', d3.forceCollide(20).strength(.3))
@@ -106,10 +188,10 @@
                 .append('link')                                         // create new corresponding DOM elements
                 .merge(linkSelection)                                   // merge the newly created elements with earlier selection
                 .transition()
-                    .attr("x1", function (d) { return d.source.x; })     // create svg on the DOM element selection
-                    .attr("y1", function (d) { return d.source.y; })
-                    .attr("x2", function (d) { return d.target.x; })
-                    .attr("y2", function (d) { return d.target.y; })
+                .attr("x1", function (d) { return d.source.x; })     // create svg on the DOM element selection
+                .attr("y1", function (d) { return d.source.y; })
+                .attr("x2", function (d) { return d.target.x; })
+                .attr("y2", function (d) { return d.target.y; })
 
             //UPDATE NODES
             d3.select('#simulation')
@@ -121,10 +203,14 @@
         }
 
         function initiate() {
+
             updateNodes()
+            createNodes()
             updateLinks()
             simulate.on("tick", visualise);                             // when this runs, the nodes array is updated again
         }
+
+        initiate()
 
         function centralise() {
 
@@ -133,10 +219,10 @@
                 var sourceNode = nodes[link.source];
                 var targetNode = nodes[link.target];
 
-                if(sourceNode.power >= targetNode.power && targetNode.power > 10) {
+                if (sourceNode.power >= targetNode.power && targetNode.power > 10) {
                     sourceNode.power = sourceNode.power + 10 % targetNode.power;
                     targetNode.power = targetNode.power - 10 % targetNode.power;
-                } else if(sourdeNode.power < targetNode.power && sourceNode.power > 10) {
+                } else if (sourdeNode.power < targetNode.power && sourceNode.power > 10) {
                     sourceNode.power = sourceNode.power - 10 % targetNode.power;
                     targetNode.power = targetNode.power + 10 % targetNode.power
                 }
@@ -155,11 +241,26 @@
         }
 
         function decentralise() {
-            for each link, 
-                if source.power > target.power, and target.power > 10
-            set source.power = source.power - 10 % target.power and set target.power = target.power + 10 % target.power
-            if source.power < target.power, and source.power > 10
-            set source.power = source.power + 10 % target.power and set target.power = target.power - 10 % target.power
+
+            links.forEach(function (link) {
+
+                var sourceNode = nodes[link.source];
+                var targetNode = nodes[link.target];
+
+                if (sourceNode.power >= targetNode.power && targetNode.power > 10) {
+                    sourceNode.power = sourceNode.power - 10 % targetNode.power;
+                    targetNode.power = targetNode.power + 10 % targetNode.power;
+                } else if (sourdeNode.power < targetNode.power && sourceNode.power > 10) {
+                    sourceNode.power = sourceNode.power + 10 % targetNode.power;
+                    targetNode.power = targetNode.power - 10 % targetNode.power
+                }
+            });
+
+            // for each link, 
+            //     if source.power > target.power, and target.power > 10
+            // set source.power = source.power - 10 % target.power and set target.power = target.power + 10 % target.power
+            // if source.power < target.power, and source.power > 10
+            // set source.power = source.power + 10 % target.power and set target.power = target.power - 10 % target.power
 
             updateNodes()
             updateLinks()
