@@ -1,26 +1,152 @@
 <!DOCTYPE html>
 <html>
 
+<style>
+    svg {
+        width: 102%;
+        height: 102%;
+    }
+
+    h1 {
+        position: absolute;
+        width: 25%;
+        height: 350px;
+        left: 100px;
+        top: 80px;
+    }
+
+    p {
+        position: absolute;
+        font-family: 'Open Sans';
+        width: 20%;
+        height: 350px;
+        left: 100px;
+        top: 200px;
+    }
+
+    /* REFRESH */
+    #refresh {
+        color: red;
+        border-radius: 8px;
+        border: 1px solid red;
+        background-color: white;
+    }
+
+    #refresh:hover {
+        background-color: rgb(255, 228, 228);
+        color: red;
+    }
+
+    #refresh:focus {
+        outline: 0;
+    }
+
+
+    /* CENTRALISE */
+    #centralise {
+        color: red;
+        font-family: 'Open Sans';
+        font-size: 10pt;
+        padding: 10px 10px;
+        border-radius: 8px;
+        border: 1px solid red;
+        background-color: white;
+        position: absolute;
+        top: 155px;
+        left: 100px;
+        transition-duration: 0.2s;
+        text-align: center;
+        box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.055), 0 2px 15px 0 rgba(0,0,0,0.19);
+    }
+
+    #centralise:hover {
+        background-color: rgb(255, 228, 228);
+        color: red;
+    }
+
+    #centralise:focus {
+        outline: 0;
+    }
+
+    /* DECENTRALISE */
+    #decentralise {
+        color: red;
+        font-family: 'Open Sans';
+        font-weight: bold;
+        font-size: 10pt;
+        padding: 10px 10px;
+        border-radius: 8px;
+        border: 1px solid red;
+        background-color: white;
+        position: absolute;
+        top: 155px;
+        left: 200px;
+        text-align: center;
+        box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.055), 0 2px 15px 0 rgba(0,0,0,0.19);
+    }
+
+    #decentralise:focus {
+        outline: 0;
+    }
+
+    #decentralise:hover {
+        background-color: rgb(255, 228, 228);
+        color: red;
+    }
+</style>
+
 <head>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Kumar+One+Outline&display=swap" rel="stylesheet">
     <meta charset="utf-8" />
     <title>De/Centralise</title>
 </head>
 
 <body>
+
     <div>
-        <button onclick="centralise();">Centralise</button>
+        <h1>De/Centralise</h1>
+        <p>While centralisation
+            gives us predictability and standardisation, decentralisation enables resiliency and diversity. We
+            often use the two terms as absolutes. <br>
+            <br> While you play with this model, think about examples from your life. Recent policies, market dynamics
+            between corporations, the ideas around blockchain or power within households. Is
+            anything completely centralised? What happens if you decentralise too far? <br> <br> If everything went off screen for too long, <button id="refresh"
+                onmousedown="location.reload();">Reset</button> </p>
+    </div>
+
+    <div>
+        <button id="centralise" onmousedown="centralise();">Centralise</button>
     </div>
     <div>
-        <button onclick="decentralise();">Decentralise</button>
+        <button id="decentralise" onmousedown="decentralise();">Decentralise</button>
     </div>
+
+    <!-- <div>
+        <button id="BringOnScreen" onclick="bringOnScreen();">Bring On Screen</button>
+    </div> -->
+
+    <!-- <div>
+        <button id="refresh" onclick=" location.reload();">Refresh</button>
+    </div> -->
+
     <script src="d3.js"></script>
     <script src="lodash.js"></script>
     <script type="text/javascript">
 
         var simulation = null;
 
-        var w = window.innerWidth - 40,
-            h = window.innerHeight - 40;
+        // var win = window,
+        //     d = document,
+        //     e = d.documentElement,
+        //     g = d.getElementsByTagName('body')[0],
+        //     w = win.innerWidth || e.clientWidth || g.clientWidth,
+        //     h = win.innerHeight || e.clientHeight || g.clientHeight;
+
+        var w = window.innerWidth,
+            h = window.innerHeight;
+
+        document.body.style.overflow = "hidden";
 
         var svg = d3.select("body").append("svg")
             .attr("width", w)
@@ -32,17 +158,17 @@
             .attr("height", h)
             .style('fill', "#FFFFFF")
 
-        var distMultiplier = .5;
+        var distMultiplier = .75;
 
         var nodes = d3.range(100).map(d => {
             var p = Math.floor((Math.random() * 100) + 10)
             return {
                 power: p,
-                x: (Math.random() * w) - p / 5,
-                y: (Math.random() * h) - p / 5,
+                x: (Math.random() * w) - p / 10,
+                y: (Math.random() * h) - p / 10,
                 linkedNum: 0,
                 r: p / 10,
-                linkLength: p * distMultiplier,
+                linkLength: Math.pow(p, distMultiplier),
                 linkNum: Math.floor(p / 10),
             }
         })
@@ -64,6 +190,10 @@
 
         var toCentralise = false
 
+        var countCentralise = 0
+
+        var countDecentralise = 0
+
         function updateLinks() {
 
             nodes.forEach(function (node) {
@@ -76,7 +206,7 @@
 
                 var dist = false
 
-                linksOfNode.forEach(function (link) {
+                linksOfNode.some(function (link) {
 
                     var otherNode = link.source != node ? link.source : link.target;
 
@@ -84,10 +214,10 @@
                     var y = otherNode.y - node.y
                     var distanceToTarget = Math.sqrt(x * x + y * y)
 
-                    if (node.linkLength + otherNode.linkLength < distanceToTarget) {dist = true}
+                    if (node.linkLength + otherNode.linkLength < distanceToTarget) { dist = true }
                 })
 
-                if (node.linkedNum > node.linkNum || dist ) { // delete links from less powerful neighbors 
+                if (node.linkedNum >= node.linkNum || dist) { // delete links from less powerful neighbors 
 
                     linksOfNode.forEach(function (link) {
 
@@ -107,7 +237,7 @@
 
                     });
 
-                } else if (node.linkedNum <= node.linkNum) { // add links to more powerful neighbors
+                } else if (node.linkedNum < node.linkNum) { // add links to more powerful neighbors
 
                     var unavailableTargets = [node];
 
@@ -147,9 +277,15 @@
             v.enter()
                 .append('circle')
                 .merge(v)
+                // .attr("cx", function (d) { return d.x = Math.max(d.r, Math.min(w - d.r, d.x)); })
+                // .attr("cy", function (d) { return d.y = Math.max(d.r, Math.min(h - d.r, d.y)); })
                 .attr('cx', function (d) { return d.x; })
                 .attr('cy', function (d) { return d.y; })
-                .attr('r', function (d) { return d.linkedNum * 1.5; })
+                .attr('r', function (d) { return Math.sqrt(d.power); })
+                // .attr('r', function (d) { return Math.sqrt(d.linkedNum *20 ); })
+                // .attr('r', function (d) { return Math.pow(d.power, (11 / 20)); })
+                // .attr('r', function (d) { return Math.pow(d.power, ); })
+                // .attr('r', function (d) { return d.power / 30 })
                 .style("fill", "#ff0000");
 
             v.exit().remove()
@@ -192,17 +328,27 @@
             updateLinks()
             simulation = d3.forceSimulation(nodes)
                 // .force('charge', d3.forceManyBody().strength(function (d) { if (d.linkedNum < 2) {return -5} else {return (4 - d.linkedNum) * 5} }))
+                // .force('charge', d3.forceManyBody().strength(function (d) {
+                //     if (toCentralise) { return 10 } 
+                //     if (!toCentralise && countDecentralise != -20) { return - 5 } 
+                //     if (!toCentralise && countDecentralise == -20) { return - 50 }
+                // }))
                 .force('charge', d3.forceManyBody().strength(function (d) {
-                    if (toCentralise) { return 10 } else { return - 5 }
+                    if (toCentralise && countCentralise < 7) { return Math.pow(countCentralise, 1.2) }
+                    if (toCentralise && countCentralise >= 7) { return 10 }
+                    if (!toCentralise && countDecentralise < 6) { return - Math.pow(- countDecentralise, 1.1) }
+                    if (!toCentralise && countDecentralise >= 6) { return - 10 }
+                    // if (!toCentralise && countDecentralise == -20) { return - 50 }
                 }))
-                .force('gravity', d3.forceCenter(w / 2, h / 2))
+                .force('gravity', d3.forceCenter(3 * w / 5, h / 2))
                 // .force('x', d3.forceX().x(w / 2))
                 // .force('y', d3.forceY().y(h / 2))
                 // .force('collision', d3.forceCollide(function (d)  { return d.linkedNum * 3}).strength(.6))
-                .force('collision', d3.forceCollide(function (d) { if (d.linkedNum < 6) { return (4 - d.linkedNum) * 3 } else { return d.linkedNum * 3 } }).strength(.6))
+                .force('collision', d3.forceCollide(function (d) { if (Math.sqrt(d.power) < 6) { return (7 - Math.sqrt(d.power)) * 2.5 } else { return Math.sqrt(d.power) * 2.5 } }).strength(.3))
                 .force('link', d3.forceLink(0).links(links))
                 .on("tick", visualise);
-                centralise()
+            centralise()
+            centralise()
         }
 
         initiate()
@@ -213,6 +359,12 @@
 
         function centralise() {
 
+            countDecentralise = 0
+
+            countCentralise = countCentralise + 1
+
+            // console.log(countCentralise)
+
             toCentralise = true;
 
             links.forEach(function (link) {
@@ -220,20 +372,20 @@
                 var sourceNode = link.source;
                 var targetNode = link.target;
 
-                if (sourceNode.power >= targetNode.power && (targetNode.power - rateoOfCentralisation) > 10) {
-                    sourceNode.power = sourceNode.power + rateoOfCentralisation; // % targetNode.power;
-                    targetNode.power = targetNode.power - rateoOfCentralisation; // % targetNode.power;
-                } else if (sourceNode.power <= targetNode.power && (sourceNode.power - rateoOfCentralisation) > 10) {
-                    sourceNode.power = sourceNode.power - rateoOfCentralisation; // % sourceNode.power;
-                    targetNode.power = targetNode.power + rateoOfCentralisation; // % sourceNode.power
+                if (sourceNode.power >= targetNode.power && (targetNode.power - 15 % targetNode.power) > 10) {
+                    sourceNode.power = sourceNode.power + 15 % targetNode.power;
+                    targetNode.power = targetNode.power - 15 % targetNode.power;
+                } else if (sourceNode.power <= targetNode.power && (sourceNode.power - 15 % sourceNode.power) > 10) {
+                    sourceNode.power = sourceNode.power - 15 % sourceNode.power;
+                    targetNode.power = targetNode.power + 15 % sourceNode.power
                 }
 
                 sourceNode.r = sourceNode.power / 10;
-                sourceNode.linkLength = sourceNode.power * distMultiplier;
+                sourceNode.linkLength = Math.pow(sourceNode.power, distMultiplier);
                 sourceNode.linkNum = Math.floor(sourceNode.power / 10);
 
                 targetNode.r = targetNode.power / 10;
-                targetNode.linkLength = targetNode.power * distMultiplier;
+                targetNode.linkLength = Math.pow(targetNode.power, distMultiplier);
                 targetNode.linkNum = Math.floor(targetNode.power / 10);
 
                 nodes[link.source.index] = sourceNode;
@@ -250,6 +402,13 @@
 
         function decentralise() {
 
+
+            countCentralise = 0
+
+            countDecentralise = countDecentralise - 1
+
+            // console.log(countDecentralise)
+
             toCentralise = false
 
             links.forEach(function (link) {
@@ -257,20 +416,20 @@
                 var sourceNode = link.source;
                 var targetNode = link.target;
 
-                if (sourceNode.power >= targetNode.power && (sourceNode.power - rateoOfDecentralisation) > 0) {
-                    sourceNode.power = sourceNode.power - rateoOfDecentralisation; //% sourceNode.power;
-                    targetNode.power = targetNode.power + rateoOfDecentralisation; // % sourceNode.power;
-                } else if (sourceNode.power <= targetNode.power && (targetNode.power - rateoOfDecentralisation) > 0) {
-                    sourceNode.power = sourceNode.power + rateoOfDecentralisation; // % targetNode.power;
-                    targetNode.power = targetNode.power - rateoOfDecentralisation; // % targetNode.power
+                if (sourceNode.power >= targetNode.power && (sourceNode.power - 3 % sourceNode.power) > 10) {
+                    sourceNode.power = sourceNode.power - 3 % sourceNode.power;
+                    targetNode.power = targetNode.power + 3 % sourceNode.power;
+                } else if (sourceNode.power <= targetNode.power && (targetNode.power - 3 % targetNode.power) > 10) {
+                    sourceNode.power = sourceNode.power + 3 % targetNode.power;
+                    targetNode.power = targetNode.power - 3 % targetNode.power;
                 }
 
                 sourceNode.r = sourceNode.power / 10
-                sourceNode.linkLength = sourceNode.power * distMultiplier;
+                sourceNode.linkLength = Math.pow(sourceNode.power, distMultiplier);
                 sourceNode.linkNum = Math.floor(sourceNode.power / 10);
 
                 targetNode.r = targetNode.power / 10;
-                targetNode.linkLength = targetNode.power * distMultiplier;
+                targetNode.linkLength = Math.pow(targetNode.power, distMultiplier);
                 targetNode.linkNum = Math.floor(targetNode.power / 10);
 
                 nodes[link.source.index] = sourceNode;
@@ -283,6 +442,18 @@
             simulation.force("link").links(links);
             simulation.alpha(1).restart();
         }
+
+        function bringOnScreen() {
+            nodes.forEach(function (node) {
+                node.x = (Math.random() * w) - p / 10,
+                    node.y = (Math.random() * h) - p / 10;
+                updateLinks()
+                simulation.nodes(nodes);
+                simulation.force("link").links(links);
+                simulation.alpha(1).restart();
+            })
+        }
+
     </script>
 </body>
 
