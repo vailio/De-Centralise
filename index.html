@@ -34,7 +34,7 @@
 
         var distMultiplier = .5;
 
-        var nodes = d3.range(50).map(d => {
+        var nodes = d3.range(100).map(d => {
             var p = Math.floor((Math.random() * 100) + 10)
             return {
                 power: p,
@@ -62,6 +62,8 @@
 
         var links = []
 
+        var toCentralise = false
+
         function updateLinks() {
 
             nodes.forEach(function (node) {
@@ -72,7 +74,20 @@
                     if (link.source == node || link.target == node) { return link };
                 });
 
-                if (node.linkedNum > node.linkNum) { // delete links from less powerful neighbors 
+                var dist = false
+
+                linksOfNode.forEach(function (link) {
+
+                    var otherNode = link.source != node ? link.source : link.target;
+
+                    var x = otherNode.x - node.x
+                    var y = otherNode.y - node.y
+                    var distanceToTarget = Math.sqrt(x * x + y * y)
+
+                    if (node.linkLength + otherNode.linkLength < distanceToTarget) {dist = true}
+                })
+
+                if (node.linkedNum > node.linkNum || dist ) { // delete links from less powerful neighbors 
 
                     linksOfNode.forEach(function (link) {
 
@@ -120,10 +135,6 @@
                     });
                 }
             });
-            var errorNodes = _.filter(nodes, function (node) {
-                if (node.linkNum < node.linkedNum) { return node };
-            });
-
         }
 
         function visualise() {
@@ -171,7 +182,6 @@
                 .merge(u)
                 .attr('x', function (d) { return d.x })
                 .attr('y', function (d) { return d.y })
-                // .attr('dy', function (d) {return 5})
                 .style('fill', "#666666")
 
             w.exit().remove()
@@ -181,28 +191,41 @@
             createNodes()
             updateLinks()
             simulation = d3.forceSimulation(nodes)
-                .force('charge', d3.forceManyBody().strength(function (d) { if (d.linkedNum < 2) {return -5} else {return (4 - d.linkedNum) * 5} }))
+                // .force('charge', d3.forceManyBody().strength(function (d) { if (d.linkedNum < 2) {return -5} else {return (4 - d.linkedNum) * 5} }))
+                .force('charge', d3.forceManyBody().strength(function (d) {
+                    if (toCentralise) { return 10 } else { return - 5 }
+                }))
                 .force('gravity', d3.forceCenter(w / 2, h / 2))
-                .force('collision', d3.forceCollide(function (d) { if (d.linkedNum < 6) {return (3 - d.linkedNum) * 3} else {return d.linkedNum * 3}}).strength(.6))
+                // .force('x', d3.forceX().x(w / 2))
+                // .force('y', d3.forceY().y(h / 2))
+                // .force('collision', d3.forceCollide(function (d)  { return d.linkedNum * 3}).strength(.6))
+                .force('collision', d3.forceCollide(function (d) { if (d.linkedNum < 6) { return (4 - d.linkedNum) * 3 } else { return d.linkedNum * 3 } }).strength(.6))
                 .force('link', d3.forceLink(0).links(links))
                 .on("tick", visualise);
+                centralise()
         }
 
         initiate()
 
+        var rateoOfCentralisation = 15;
+
+        var rateoOfDecentralisation = 5;
+
         function centralise() {
+
+            toCentralise = true;
 
             links.forEach(function (link) {
 
                 var sourceNode = link.source;
                 var targetNode = link.target;
 
-                if (sourceNode.power >= targetNode.power && (targetNode.power - 20) > 10) {
-                    sourceNode.power = sourceNode.power + 20; // % targetNode.power;
-                    targetNode.power = targetNode.power - 20; // % targetNode.power;
-                } else if (sourceNode.power <= targetNode.power && (sourceNode.power - 20) > 10) {
-                    sourceNode.power = sourceNode.power - 20; // % sourceNode.power;
-                    targetNode.power = targetNode.power + 20; // % sourceNode.power
+                if (sourceNode.power >= targetNode.power && (targetNode.power - rateoOfCentralisation) > 10) {
+                    sourceNode.power = sourceNode.power + rateoOfCentralisation; // % targetNode.power;
+                    targetNode.power = targetNode.power - rateoOfCentralisation; // % targetNode.power;
+                } else if (sourceNode.power <= targetNode.power && (sourceNode.power - rateoOfCentralisation) > 10) {
+                    sourceNode.power = sourceNode.power - rateoOfCentralisation; // % sourceNode.power;
+                    targetNode.power = targetNode.power + rateoOfCentralisation; // % sourceNode.power
                 }
 
                 sourceNode.r = sourceNode.power / 10;
@@ -223,21 +246,23 @@
             simulation.force("link").links(links);
             simulation.alpha(1).restart();
 
-        }
+        };
 
         function decentralise() {
+
+            toCentralise = false
 
             links.forEach(function (link) {
 
                 var sourceNode = link.source;
                 var targetNode = link.target;
 
-                if (sourceNode.power >= targetNode.power && (sourceNode.power - 1) > 10) {
-                    sourceNode.power = sourceNode.power - 1; //% sourceNode.power;
-                    targetNode.power = targetNode.power + 1; // % sourceNode.power;
-                } else if (sourceNode.power <= targetNode.power && (targetNode.power - 1) > 10) {
-                    sourceNode.power = sourceNode.power + 1; // % targetNode.power;
-                    targetNode.power = targetNode.power - 1; // % targetNode.power
+                if (sourceNode.power >= targetNode.power && (sourceNode.power - rateoOfDecentralisation) > 0) {
+                    sourceNode.power = sourceNode.power - rateoOfDecentralisation; //% sourceNode.power;
+                    targetNode.power = targetNode.power + rateoOfDecentralisation; // % sourceNode.power;
+                } else if (sourceNode.power <= targetNode.power && (targetNode.power - rateoOfDecentralisation) > 0) {
+                    sourceNode.power = sourceNode.power + rateoOfDecentralisation; // % targetNode.power;
+                    targetNode.power = targetNode.power - rateoOfDecentralisation; // % targetNode.power
                 }
 
                 sourceNode.r = sourceNode.power / 10
