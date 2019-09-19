@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <title>De/Centralise</title>
 </head>
+
 <body>
     <div>
         <button onclick="centralise();">Centralise</button>
@@ -32,7 +33,7 @@
             .style('fill', "#FFFFFF")
 
         var nodes = d3.range(40).map(d => {
-            var p = Math.floor((Math.random() * 100) + 1)
+            var p = Math.floor((Math.random() * 100) + 10)
             return {
                 power: p,
                 x: (Math.random() * w) - p / 5,
@@ -62,7 +63,7 @@
                 .selectAll('line')
                 .data(links, function (d) { return d })
                 .enter()
-                .append('line')                                      
+                .append('line')
                 .transition()
                 .attr("x1", function (d) { return d.source.x; })
                 .attr("y1", function (d) { return d.source.y; })
@@ -75,89 +76,123 @@
 
         function updateLinks() {
 
-            console.log('updateLinks start', nodes);
-
             nodes.forEach(function (node, index) {
 
-                console.log('checking node #' + index, node);
+                var temporaryLinkAarray = links.map(function (link) {
+                        return {
+                            index: link.index,
+                            source: link.source,
+                            target: link.target,
+                        };
+                    });
 
                 if (node.linkedNum > node.linkNum) {
 
-                    var linksWhereNodeIsSourceOrTarget = _.filter(links, function (link) {                          //filter all links for links of this node in new array
-                        return link.source == node.index || link.target == node.index;
+                    var linksOfNode = _.filter(temporaryLinkAarray, function (link) {
+                        return link.source.index == node.index || link.target.index == node.index;
                     });
 
-                    console.log('node.linkedNum > node.linkNum linksWhereNodeIsSourceOrTarget', linksWhereNodeIsSourceOrTarget);
+                    console.log(node)
+                    console.log(temporaryLinkAarray)
+                    console.log(linksOfNode)
 
-                    linksWhereNodeIsSourceOrTarget.forEach(function (link) {
+                    linksOfNode.forEach(function (link) {
 
-                        var otherNode = link.source != node.index ? nodes[link.source] : nodes[link.target];        // for each link, get the other node
+                        // var otherNode = link.source != index ? nodes[link.source] : nodes[link.target];
 
-                        if (otherNode.linkedNum > otherNode.linkNum && otherNode.power <= node.power) {             // if the other node also has to delete links
+                        var otherNode = link.source.index != node.index ? link.source : link.target;
+
+                        if (node.linkedNum > node.linkNum && otherNode.linkedNum > otherNode.linkNum) {
                             links.splice(link.index, 1);
-                            linksWhereNodeIsSourceOrTarget.splice(link.index, 1);
                             node.linkedNum = node.linkedNum - 1;
                             otherNode.linkedNum = otherNode.linkedNum - 1;
                         }
 
                     });
 
-                } else if (node.linkedNum < node.linkNum) {
+                }
+                // if (node.linkedNum > node.linkNum) {
 
-                    var linksWhereNodeIsSourceOrTarget = _.filter(links, function (link) {                          //filter all links for links of this node in new array
-                        return link.source == node.index || link.target == node.index;
+                //     var linksOfNode = _.filter(links, function (link) {                          //filter all links for links of this node in new array
+                //         return link.source == node.index || link.target == node.index;
+                //     });
+
+                //     console.log(linksOfNode)
+
+                //     linksOfNode.forEach(function (link) {
+
+                //         // var otherNode = link.source != node.index ? nodes[link.source] : nodes[link.target];        // for each link, get the other node
+                //         var otherNode = link.source.index != node.index ? link.source : link.target;    
+                //         if (otherNode.linkedNum > otherNode.linkNum && otherNode.power < node.power) {             // if the other node also has to delete links
+                //             links.splice(link.index, 1);
+                //             linksOfNode.splice(link.index, 1);
+                //             node.linkedNum = node.linkedNum - 1;
+                //             otherNode.linkedNum = otherNode.linkedNum - 1;
+                //         }
+
+                //     });
+
+                // }
+                else if (node.linkedNum < node.linkNum) {
+                    // console.log('node', node)
+
+                    var linksOfNode = _.filter(links, function (link) {                          //filter all links for links of this node in new array
+                        return link.source.index == node.index || link.target.index == node.index;
                     });
+
+                    // console.log('linksOfNode',linksOfNode)
 
                     var unavailableTargets = [];
 
-                    unavailableTargets.push(node)
+                    unavailableTargets.push(node);
 
-                    linksWhereNodeIsSourceOrTarget.forEach(function (link) {                                        //List nodes with which links exist
-                        if (link.source == node.index) { unavailableTargets.push(link.target) }
-                        else if (link.target == node.index) { unavailableTargets.push(link.source) }
+                    // console.log('unavailableTargets', unavailableTargets)     
+
+                    linksOfNode.forEach(function (link) {                                        //List nodes with which links exist
+                        if (link.source.index == node.index) { unavailableTargets.push(link.target) }
+                        else if (link.target.index == node.index) { unavailableTargets.push(link.source) }
                     });
 
-                    var availableTargets = nodes.filter(function (node) {                                               //List Targets available for new links
-                        return !unavailableTargets.includes(node);
-                    })
+                    // const tempNodes = nodes.map(x => x);
+
+                    // console.log('nodes', nodes)
+                    // console.log('tempNodes', tempNodes)
+
+                    // unavailableTargets.foreach(function (target) {
+                    //     tempNodes.splice(target.index, 1);
+                    // });
+
+                    // var availableTargets = nodes.filter(function (node) {                                               //List Targets available for new links
+                    //     return !unavailableTargets.includes(node);
+                    // })
+
+                    var availableTargets = _.differenceWith(nodes, unavailableTargets, _.isEqual);
+
+                    // console.log('availableTargets', availableTargets)
 
                     availableTargets.forEach(function (target) {
                         var x = target.x - node.x
                         var y = target.y - node.y
                         var distanceToTarget = Math.sqrt(x * x + y * y)
 
-                        if (node.linkedNum < node.linkNum
+                        while (node.linkedNum < node.linkNum
                             && target.linkedNum < target.linkNum
-                            && distanceToTarget <= target.linkLength) {     // if the other node also wants links
+                            && (distanceToTarget < node.linkLength || distanceToTarget < target.linkLength)) {     // if the other node also wants links
                             newLink = { source: node, target: target }
                             links.push(newLink);
-                            linksWhereNodeIsSourceOrTarget.push(newLink);
+                            // linksOfNode.push(newLink);
                             node.linkedNum = node.linkedNum + 1;
                             target.linkedNum = target.linkedNum + 1;
+                            // console.log('target', target)
                         }
                     })
                 }
-            });
+            }); 
+            // console.log('links.length', links.length)
         }
 
         function visualise() {
-            var u = d3.select('svg')
-                .selectAll('line')
-                .data(links, function (d) { return d });
 
-            u.enter()
-                .append('line')
-                .merge(u)                                        
-                // .transition()
-                .attr("x1", function (d) {
-                    return d.source.x;
-                })
-                .attr("y1", function (d) { return d.source.y; })
-                .attr("x2", function (d) { return d.target.x; })
-                .attr("y2", function (d) { return d.target.y; })
-                .style("stroke", "#444444");
-
-            u.exit().remove();
 
             v = d3.select('svg')
                 .selectAll('circle')
@@ -172,6 +207,24 @@
                 .style("fill", "#ff0000");
 
             v.exit().remove()
+
+            var u = d3.select('svg')
+                .selectAll('line')
+                .data(links, function (d) { return d });
+
+            u.enter()
+                .append('line')
+                .merge(u)
+                // .transition()
+                .attr("x1", function (d) {
+                    return d.source.x;
+                })
+                .attr("y1", function (d) { return d.source.y; })
+                .attr("x2", function (d) { return d.target.x; })
+                .attr("y2", function (d) { return d.target.y; })
+                .style("stroke", "#444444");
+
+            u.exit().remove();
         }
 
         function initiate() {
@@ -194,10 +247,13 @@
                 var sourceNode = link.source;
                 var targetNode = link.target;
 
-                if (sourceNode.power > targetNode.power && targetNode.power > 10) {
+                console.log('old sourceNode', sourceNode);
+                console.log('old targetNode', targetNode);
+
+                if (sourceNode.power >= targetNode.power && (targetNode.power - 10 % targetNode.power) > 15) {
                     sourceNode.power = sourceNode.power + 10 % targetNode.power;
                     targetNode.power = targetNode.power - 10 % targetNode.power;
-                } else if (sourceNode.power < targetNode.power && sourceNode.power > 10) {
+                } else if (sourceNode.power <= targetNode.power && (sourceNode.power - 10 % sourceNode.power) > 15) {
                     sourceNode.power = sourceNode.power - 10 % sourceNode.power;
                     targetNode.power = targetNode.power + 10 % sourceNode.power
                 }
@@ -210,6 +266,9 @@
                 targetNode.linkLength = targetNode.power * 4;
                 targetNode.linkNum = targetNode.power / 10;
 
+                console.log('new sourceNode', sourceNode);
+                console.log('new targetNode', targetNode);
+
                 nodes[link.source.index] = sourceNode;
                 nodes[link.target.index] = targetNode;
 
@@ -219,6 +278,7 @@
             simulation.nodes(nodes);
             simulation.force("link").links(links);
             simulation.alpha(1).restart();
+            console.log("centralised")
 
         }
 
@@ -229,12 +289,12 @@
                 var sourceNode = link.source;
                 var targetNode = link.target;
 
-                if (sourceNode.power > targetNode.power) {
-                    sourceNode.power = sourceNode.power - 10 % sourceNode.power;
-                    targetNode.power = targetNode.power + 10 % sourceNode.power;
-                } else if (sourceNode.power < targetNode.power) {
-                    sourceNode.power = sourceNode.power + 10 % targetNode.power;
-                    targetNode.power = targetNode.power - 10 % targetNode.power
+                if (sourceNode.power >= targetNode.power && (sourceNode.power - 5 % sourceNode.power) > 15) {
+                    sourceNode.power = sourceNode.power - 5 % sourceNode.power;
+                    targetNode.power = targetNode.power + 5 % sourceNode.power;
+                } else if (sourceNode.power <= targetNode.power && (targetNode.power - 5 % targetNode.power) > 15) {
+                    sourceNode.power = sourceNode.power + 5 % targetNode.power;
+                    targetNode.power = targetNode.power - 5 % targetNode.power
                 }
 
                 sourceNode.r = sourceNode.power / 10
@@ -254,7 +314,7 @@
             simulation.nodes(nodes);
             simulation.force("link").links(links);
             simulation.alpha(1).restart();
-
+            console.log("centralised")
         }
     </script>
 </body>
