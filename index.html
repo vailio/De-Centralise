@@ -1,152 +1,26 @@
 <!DOCTYPE html>
 <html>
 
-<style>
-    svg {
-        width: 102%;
-        height: 102%;
-    }
-
-    h1 {
-        position: absolute;
-        width: 25%;
-        height: 350px;
-        left: 100px;
-        top: 80px;
-    }
-
-    p {
-        position: absolute;
-        font-family: 'Open Sans';
-        width: 20%;
-        height: 350px;
-        left: 100px;
-        top: 200px;
-    }
-
-    /* REFRESH */
-    #refresh {
-        color: red;
-        border-radius: 8px;
-        border: 1px solid red;
-        background-color: white;
-    }
-
-    #refresh:hover {
-        background-color: rgb(255, 228, 228);
-        color: red;
-    }
-
-    #refresh:focus {
-        outline: 0;
-    }
-
-
-    /* CENTRALISE */
-    #centralise {
-        color: red;
-        font-family: 'Open Sans';
-        font-size: 10pt;
-        padding: 10px 10px;
-        border-radius: 8px;
-        border: 1px solid red;
-        background-color: white;
-        position: absolute;
-        top: 155px;
-        left: 100px;
-        transition-duration: 0.2s;
-        text-align: center;
-        box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.055), 0 2px 15px 0 rgba(0,0,0,0.19);
-    }
-
-    #centralise:hover {
-        background-color: rgb(255, 228, 228);
-        color: red;
-    }
-
-    #centralise:focus {
-        outline: 0;
-    }
-
-    /* DECENTRALISE */
-    #decentralise {
-        color: red;
-        font-family: 'Open Sans';
-        font-weight: bold;
-        font-size: 10pt;
-        padding: 10px 10px;
-        border-radius: 8px;
-        border: 1px solid red;
-        background-color: white;
-        position: absolute;
-        top: 155px;
-        left: 200px;
-        text-align: center;
-        box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.055), 0 2px 15px 0 rgba(0,0,0,0.19);
-    }
-
-    #decentralise:focus {
-        outline: 0;
-    }
-
-    #decentralise:hover {
-        background-color: rgb(255, 228, 228);
-        color: red;
-    }
-</style>
-
 <head>
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Kumar+One+Outline&display=swap" rel="stylesheet">
     <meta charset="utf-8" />
     <title>De/Centralise</title>
 </head>
 
 <body>
-
     <div>
-        <h1>De/Centralise</h1>
-        <p>While centralisation
-            gives us predictability and standardisation, decentralisation enables resiliency and diversity. We
-            often use the two terms as absolutes. <br>
-            <br> While you play with this model, think about examples from your life. Recent policies, market dynamics
-            between corporations, the ideas around blockchain or power within households. Is
-            anything completely centralised? What happens if you decentralise too far? <br> <br> If everything went off screen for too long, <button id="refresh"
-                onmousedown="location.reload();">Reset</button> </p>
-    </div>
-
-    <div>
-        <button id="centralise" onmousedown="centralise();">Centralise</button>
+        <button onclick="centralise();">Centralise</button>
     </div>
     <div>
-        <button id="decentralise" onmousedown="decentralise();">Decentralise</button>
+        <button onclick="decentralise();">Decentralise</button>
     </div>
-
-    <!-- <div>
-        <button id="BringOnScreen" onclick="bringOnScreen();">Bring On Screen</button>
-    </div> -->
-
-    <!-- <div>
-        <button id="refresh" onclick=" location.reload();">Refresh</button>
-    </div> -->
-
     <script src="d3.js"></script>
     <script src="lodash.js"></script>
     <script type="text/javascript">
 
         var simulation = null;
 
-        // var win = window,
-        //     d = document,
-        //     e = d.documentElement,
-        //     g = d.getElementsByTagName('body')[0],
-        //     w = win.innerWidth || e.clientWidth || g.clientWidth,
-        //     h = win.innerHeight || e.clientHeight || g.clientHeight;
-
-        var w = window.innerWidth,
-            h = window.innerHeight;
-
-        document.body.style.overflow = "hidden";
+        var w = window.innerWidth - 40,
+            h = window.innerHeight - 40;
 
         var svg = d3.select("body").append("svg")
             .attr("width", w)
@@ -158,17 +32,17 @@
             .attr("height", h)
             .style('fill', "#FFFFFF")
 
-        var distMultiplier = .75;
+        var distMultiplier = 1.03;
 
         var nodes = d3.range(100).map(d => {
             var p = Math.floor((Math.random() * 100) + 10)
             return {
                 power: p,
-                x: (Math.random() * w) - p / 10,
-                y: (Math.random() * h) - p / 10,
+                x: (Math.random() * w) - p / 5,
+                y: (Math.random() * h) - p / 5,
                 linkedNum: 0,
                 r: p / 10,
-                linkLength: Math.pow(p, distMultiplier),
+                linkLength: Math.pow(distMultiplier ,p),
                 linkNum: Math.floor(p / 10),
             }
         })
@@ -334,20 +208,19 @@
                 //     if (!toCentralise && countDecentralise == -20) { return - 50 }
                 // }))
                 .force('charge', d3.forceManyBody().strength(function (d) {
-                    if (toCentralise && countCentralise < 7) { return Math.pow(countCentralise, 1.2) }
-                    if (toCentralise && countCentralise >= 7) { return 10 }
-                    if (!toCentralise && countDecentralise < 6) { return - Math.pow(- countDecentralise, 1.1) }
-                    if (!toCentralise && countDecentralise >= 6) { return - 10 }
+                    if ( countCentralise < 4) { return Math.pow(countCentralise, 1.1) }
+                    if (countCentralise >= 4) { return 10 }
+                    if (countDecentralise < 6) { return - Math.pow( - countDecentralise, 1.1) }
+                    if (countDecentralise >= 6) { return - 10 }
                     // if (!toCentralise && countDecentralise == -20) { return - 50 }
                 }))
-                .force('gravity', d3.forceCenter(3 * w / 5, h / 2))
+                .force('gravity', d3.forceCenter(w / 2, h / 2))
                 // .force('x', d3.forceX().x(w / 2))
                 // .force('y', d3.forceY().y(h / 2))
                 // .force('collision', d3.forceCollide(function (d)  { return d.linkedNum * 3}).strength(.6))
-                .force('collision', d3.forceCollide(function (d) { if (Math.sqrt(d.power) < 6) { return (7 - Math.sqrt(d.power)) * 2.5 } else { return Math.sqrt(d.power) * 2.5 } }).strength(.3))
+                .force('collision', d3.forceCollide(function (d) { if (Math.sqrt(d.power) < 6) { return (7 - Math.sqrt(d.power)) * 3 } else { return Math.sqrt(d.power) * 3 } }).strength(.3))
                 .force('link', d3.forceLink(0).links(links))
                 .on("tick", visualise);
-            centralise()
             centralise()
         }
 
@@ -381,11 +254,11 @@
                 }
 
                 sourceNode.r = sourceNode.power / 10;
-                sourceNode.linkLength = Math.pow(sourceNode.power, distMultiplier);
+                sourceNode.linkLength = Math.pow(distMultiplier, sourceNode.power);
                 sourceNode.linkNum = Math.floor(sourceNode.power / 10);
 
                 targetNode.r = targetNode.power / 10;
-                targetNode.linkLength = Math.pow(targetNode.power, distMultiplier);
+                targetNode.linkLength = Math.pow(distMultiplier, targetNode.power);
                 targetNode.linkNum = Math.floor(targetNode.power / 10);
 
                 nodes[link.source.index] = sourceNode;
@@ -401,7 +274,6 @@
         };
 
         function decentralise() {
-
 
             countCentralise = 0
 
@@ -425,11 +297,11 @@
                 }
 
                 sourceNode.r = sourceNode.power / 10
-                sourceNode.linkLength = Math.pow(sourceNode.power, distMultiplier);
+                sourceNode.linkLength = Math.pow(distMultiplier, sourceNode.power);
                 sourceNode.linkNum = Math.floor(sourceNode.power / 10);
 
                 targetNode.r = targetNode.power / 10;
-                targetNode.linkLength = Math.pow(targetNode.power, distMultiplier);
+                targetNode.linkLength = Math.pow(distMultiplier, targetNode.power);
                 targetNode.linkNum = Math.floor(targetNode.power / 10);
 
                 nodes[link.source.index] = sourceNode;
@@ -442,18 +314,6 @@
             simulation.force("link").links(links);
             simulation.alpha(1).restart();
         }
-
-        function bringOnScreen() {
-            nodes.forEach(function (node) {
-                node.x = (Math.random() * w) - p / 10,
-                    node.y = (Math.random() * h) - p / 10;
-                updateLinks()
-                simulation.nodes(nodes);
-                simulation.force("link").links(links);
-                simulation.alpha(1).restart();
-            })
-        }
-
     </script>
 </body>
 
