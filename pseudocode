@@ -9,32 +9,30 @@ availablePower = 1000
 
 createNodes(
     for n <= 100,
-        create node with {power, x, y, radius, vx, vy, linkLength, linkNum, linkedNum}
+        create node with {
+            power = random 10, 
+            x = random width, 
+            y random height, 
+            radius = radius(power), 
+            vx, 
+            vy, 
+            linkLength = linkLength(power), 
+            linkNum = linkNum(power), 
+            linkedNum = 0}
         add node to nodes array
-    return nodes
-)
-
-for each link, if source.power >= target.power, 
-    set source.power = source.power + 10%target.power and set target.power = target.power - 10%target.power
-
-updatePower(
-    min = 0 max = 100
-    for each node, 
-        distribute availablePower in percentage
-    decrease availablePower by that much
 )
 
 radius(
-    min = 1 max = 50 
-    power
+    map this.power from 0,100 to 0,40
 )
 
 linkLength(
-    min = 0 max = diagonal of svg
-    power 
+    map this.power from 0,100 to 0,sqrt(wˆ2 + hˆ2)
 )
 
-linkNum(power)
+linkNum(
+    map this.power from 0,100 to 1,100
+)
 
 
 
@@ -46,16 +44,14 @@ updateLinks(
             do nothing
 
         while linkedNum > LinkNum,
-            pick one of its targets, if linkedNum > linkNum, if power of target < power of self
+            pick one of its targets, if linkedNum of target > linkNum, if power of target < power of self
                 delete link between them from links array
                 decrease linkedNum of source and target
         
         while linkedNum < linkNum, 
-            pick a random target. if linkedNum < linkNum, and distance to target < linkLength source or target 
+            pick a random target. if linkedNum of target < linkNum, and distance to target < linkLength source or target 
                 create link between source and target in links array
                 increase linkedNum of source and target
-    
-    return links
 )
 
 
@@ -68,6 +64,22 @@ initiate(updatePower, updateNodes, updateLinks, simulate)
 
 
 
-centralise(updatePower, updateNodes, updateLinks, simulate)
+centralise(
+    for each link, 
+        if source.power >= target.power, and target.power>10
+            set source.power = source.power + 10%target.power and set target.power = target.power - 10%target.power
+        if source.power <= target.power, and source.power>10
+            set source. power = source.power - 10%target.power and set target.power = target.power + 10%target.power
+        
+    , updateNodes, updateLinks, simulate
+)
 
-decentralise(updatePower, updateNodes, updateLinks, simulate)
+decentralise(
+    for each link, 
+        if source.power > target.power, and target.power>10
+            set source.power = source.power - 10%target.power and set target.power = target.power + 10%target.power
+        if source.power < target.power, and source.power>10
+            set source.power = source.power + 10%target.power and set target.power = target.power - 10%target.power
+
+    , updateNodes, updateLinks, simulate
+)
