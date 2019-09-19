@@ -11,17 +11,28 @@
         position: absolute;
         width: 25%;
         height: 350px;
-        left: 100px;
-        top: 80px;
+        left: 3%;
+        top: 1%;
     }
 
     p {
         position: absolute;
         font-family: 'Open Sans';
-        width: 20%;
-        height: 350px;
-        left: 100px;
-        top: 200px;
+        column-count: 2;
+        font-size: 10pt;
+        width: 37%;
+        height: 125%;
+        left: 3%;
+        top: 21%;
+    }
+
+    #twitter {
+        color: red;
+        position: absolute;
+        font-family: 'Open Sans';
+        font-size: 7pt;
+        left: 90%;
+        top: 93%;
     }
 
     /* REFRESH */
@@ -52,8 +63,8 @@
         border: 1px solid red;
         background-color: white;
         position: absolute;
-        top: 155px;
-        left: 100px;
+        top: 13%;
+        left: 3%;
         transition-duration: 0.2s;
         text-align: center;
         box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.055), 0 2px 15px 0 rgba(0, 0, 0, 0.19);
@@ -72,15 +83,15 @@
     #decentralise {
         color: red;
         font-family: 'Open Sans';
-        font-weight: bold;
+        /* font-weight: bold; */
         font-size: 10pt;
         padding: 10px 10px;
         border-radius: 8px;
         border: 1px solid red;
         background-color: white;
         position: absolute;
-        top: 155px;
-        left: 200px;
+        top: 13%;
+        left: 12%;
         text-align: center;
         box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.055), 0 2px 15px 0 rgba(0, 0, 0, 0.19);
     }
@@ -107,23 +118,34 @@
 
     <div>
         <h1>De/Centralise</h1>
-        <p>While centralisation
-            gives us predictability and standardisation, decentralisation enables resiliency and diversity. But we
-            often use the two terms as absolutes. <br>
-            <br> While you play with this model, think about examples from your life. Recent policies, market dynamics
-            between corporations, the ideas around blockchain or power dynamics at home. Is
-            anything completely centralised? What happens if you decentralise a bit too much? <br> <br> If everything
-            went off
-            screen for too long, it's okay, in such systems, we can't always predict what will happen, so
-            <button id="refresh" onmousedown="location.reload();">reset</button> </p>
+        <button id="centralise" onmousedown="centralise();">Centralise</button>
+        <button id="decentralise" onmousedown="decentralise();">Decentralise</button>
+        <p>We often use ‘centralisation’ and ‘decentralisation’ as black and white. One or the other. The reality
+            is it’s a range. Neither is ideal in an
+            extreme form. This exhibit encourages you to explore that by clicking on the two buttons above. At what
+            point would you say the visuals are ‘centralised’? Or ‘decentralised’? Can you identify the line between the
+            two? How easy is it move from one
+            extreme to another?
+            <br>
+
+            <br>We centralise to make our life more predictable and cooperative. We are able to come together as
+            nations,
+            brand Multi-national corporations, and exchange ideas across the world. We also become more structured,
+            unified and less flexible. Fewer people make the more important decisions, and decisions are made slower
+            <br>
+            <br> So we decentralise to make our life more varied and flexible. We adapt to our environment. We become
+            more locally aware. More people make the important decisions and they are made faster. We develop unique
+            cultures and also become less predictable, and more chaotic.
+            <br>
+            <br> it’s alright if everything went off screen for too long. We can't always predict what will happen, so
+            <button id="refresh" onmousedown="location.reload();">reset</button>
+        </p>
+        <p id="twitter">
+            @vishwanath95
+        </p>
     </div>
 
-    <div>
-        <button id="centralise" onmousedown="centralise();">Centralise</button>
-    </div>
-    <div>
-        <button id="decentralise" onmousedown="decentralise();">Decentralise</button>
-    </div>
+
 
     <script src="d3.js"></script>
     <script src="lodash.js"></script>
@@ -298,7 +320,7 @@
                     if (!toCentralise && countDecentralise < 6) { return - Math.pow(- countDecentralise, 1.1) }
                     if (!toCentralise && countDecentralise >= 6) { return - 10 }
                 }))
-                .force('gravity', d3.forceCenter(3 * w / 5, h / 2))
+                .force('gravity', d3.forceCenter(2 * w / 3, h / 2))
                 .force('collision', d3.forceCollide(function (d) {
                     // if (Math.sqrt(d.power) < 6) { return (7 - Math.sqrt(d.power)) * 2.5 }
                     // else { return Math.sqrt(d.power) * 2.5 }
