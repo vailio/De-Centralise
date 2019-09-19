@@ -3,20 +3,37 @@
 
 <head>
     <meta charset="utf-8" />
+    <style>
+        rect {
+            fill: none;
+            pointer-events: all;
+        }
+
+        .node {
+            fill: #000;
+        }
+
+        /* .cursor {
+          fill: none;
+          stroke: brown;
+          pointer-events: none;
+        } */
+
+        .link {
+            stroke: #999;
+        }
+    </style>
     <title>De/Centralise</title>
-    <!-- <script type="text/javascript" src="d3/d3.js"></script> -->
 </head>
 
 <body>
-    <div id="simulation"></div>
+    <!-- <div id="simulation"></div> -->
     <div>
         <button onclick="centralise();">Centralise</button>
     </div>
     <div>
         <button onclick="decentralise();">Decentralise</button>
     </div>
-
-    <!-- JAVASCRIPT FILE -->
     <script src="d3.js"></script>
     <script src="lodash.js"></script>
     <script type="text/javascript">
@@ -24,91 +41,97 @@
         var w = window.innerWidth,
             h = window.innerHeight;
 
-        var svg = d3.select("#simulation").append("svg:svg")
+        var svg = d3.select("body").append("svg")
             .attr("width", w)
             .attr("height", h);
 
-        var nodes = d3.range(100).map(d => {
+        d3.select('body').select('svg')
+            .append("rect")
+            .attr("width", w)
+            .attr("height", h);
+
+        var nodes = d3.range(10).map(d => {
             return {
                 power: Math.floor((Math.random() * 100) + 1),
                 x: Math.random() * w,
                 y: Math.random() * h,
-                linkedNum: 0
+                linkedNum: 0,
+                r: 3,
+                linkLength: 200,
+                linkNum: 4,
             }
         })
 
-        // nodes = [{}{}{}...]
-        function createNodes() {
+        function createNodes() {                                        // create node elements in the svg
             //CREATE NODES
-            var nodeSelection = d3.select('#simulation')
-                .select('div')
+            d3.select('svg')
                 .selectAll('node')
-                .data(nodes, function (d) { return d; })                 // data key join because we're using transition
-
-            nodeSelection.enter()
-                .append('node')
-                .merge(nodeSelection)
+                .data(nodes)                 // data key join because we're using transition
+                .enter()
+                .append('circle')
+                // .merge(nodeSelection)
                 .transition()
                 .attr('cx', function (d) { return d.x; })
                 .attr('cy', function (d) { return d.y; })
                 .attr("r", function (d) { return d.r; });
         }
 
-        function updateNodes() {
-            nodes = nodes.map(d => {
-                return {
-                    power: d.power,
-                    x: d.x,
-                    y: d.y,
-                    r: d.power / 3,
-                    linkLength: d.power / 10,
-                    linkNum: d.power / 10,
-                    linkedNum: d.linkedNum,
-                    vx: d.vx,
-                    vy: d.vy,
-                }
-            })
-        }
+        // createNodes()
 
         // function updateNodes() {
-        //     nodes = nodes.forEach(function(d) {
+        //     nodes = nodes.map(d => {
+        //         return {
+        //             power: d.power,
+        //             x: d.x,
+        //             y: d.y,
+        //             r: d.power / 3,
+        //             linkLength: d.power / 10,
+        //             linkNum: d.power / 10,
+        //             linkedNum: d.linkedNum,
+        //             vx: d.vx,
+        //             vy: d.vy,
+        //         }
+        //     })
+        // }
+
+        // function updateNodes() {
+        //     nodes.forEach(function (d) {
         //         d.r = d.power / 3;
         //         d.linkLength = d.power / 10;
-        //         d.linkNum = d.power * 10;
+        //         d.linkNum = Math.floor(d.power / 10);
         //     }
-        // )}
-        
+        //     )
+        // }
 
-        // links = [{source: node1, target: node2}{source: node1, target: node3}{}...]
         var links = []
 
         function updateLinks() {
 
-            nodes.forEach(function (node, index) {
-                //why not use the links array directly?
-                var temporaryLinkAarray = links.map(function (link, index) {                        // get all links with indices
-                    return {
-                        index: index,
-                        source: link.source,
-                        target: link.target,
-                    };
-                });
-
-                var linksWhereNodeIsSourceOrTarget = _.filter(temporaryLinkAarray, function (link) { //filter all links for links of this node in new array
-                    return link.source == index || link.target == index;
-                });
-
+            nodes.forEach(function (node) {
 
                 //while?
                 if (node.linkedNum > node.linkNum) {
 
+                    //why not use the links array directly?
+                    // var temporaryLinkAarray = links.map(function (link, index) {                        
+                    //     return {
+                    //         index: index,
+                    //         source: link.source,
+                    //         target: link.target,
+                    //     };
+                    // });
+
+                    var linksWhereNodeIsSourceOrTarget = _.filter(links, function (link) { //filter all links for links of this node in new array
+                        return link.source == node.index || link.target == node.index;
+                    });
 
                     linksWhereNodeIsSourceOrTarget.forEach(function (link) {
 
-                        var otherNode = link.source != index ? nodes[link.source] : nodes[link.target];   // for each link, figure out the other node
+                        var otherNode = link.source != node.index ? nodes[link.source] : nodes[link.target];   // for each link, get the other node
 
                         if (otherNode.linkedNum > otherNode.linkNum && otherNode.power <= node.power) {   // if the other node also has to delete links
-                            temporaryLinkAarray.splice(link.index, 1);
+                            links.splice(link.index, 1);
+                            linksWhereNodeIsSourceOrTarget.splice(link.index, 1);
                             node.linkedNum = node.linkedNum - 1;
                             otherNode.linkedNum = otherNode.linkedNum - 1;
                             //stop if node.linkedNum !> node.linkNum
@@ -116,20 +139,26 @@
 
                     });
 
-                    links = temporaryLinkArray.map(function(link){
-                        return{
-                            source: link.source,
-                            target: link.target,
-                        }
-                    })
+                    // links = temporaryLinkArray.map(function (link) {
+                    //     return {
+                    //         source: link.source,
+                    //         target: link.target,
+                    //     }
+                    // })
 
                 } else if (node.linkedNum < node.linkNum) {
 
+                    var linksWhereNodeIsSourceOrTarget = _.filter(links, function (link) {                   //filter all links for links of this node in new array
+                        return link.source == node.index || link.target == node.index;
+                    });
+
                     var unavailableTargets = [];
 
-                    linksWhereNodeIsSourceOrTarget.forEach(function (link) {                                //List nodes with which links exist
-                        if (link.source == index) { unavailableTargets.push(link.target) }
-                        else if (link.target == index) { unavailableTargets.push(link.source) }
+                    unavailableTargets.push(node)
+
+                    linksWhereNodeIsSourceOrTarget.forEach(function (link) {                                 //List nodes with which links exist
+                        if (link.source == node.index) { unavailableTargets.push(link.target) }
+                        else if (link.target == node.index) { unavailableTargets.push(link.source) }
 
                     });
 
@@ -140,11 +169,12 @@
                     availableTargets.forEach(function (target) {
                         var x = target.x - node.x
                         var y = target.y - node.y
-                        var distanceToTarget = Math.sqrt(x * x - y * y)
+                        var distanceToTarget = Math.sqrt(x * x + y * y)
 
-                        if (target.linkedNum < target.linkNum && distanceToTarget <= target.linkLength || node.linkLength) {   // if the other node also has to delete links
-                            link = { source: node, target: target }
-                            links.push(link);
+                        if (node.linkedNum < node.linkNum && target.linkedNum < target.linkNum && distanceToTarget <= target.linkLength) {     // if the other node also wants links
+                            newLink = { source: node, target: target }
+                            links.push(newLink);
+                            linksWhereNodeIsSourceOrTarget.push(newLink);
                             node.linkedNum = node.linkedNum + 1;
                             target.linkedNum = target.linkedNum + 1;
                         }
@@ -175,36 +205,33 @@
 
         function visualise() {
             //REMOVE AND ADD LINKS
-            var linkSelection = d3.select('#simulation')
-                .select('div')
+            //     var v = d3.select('svg')
+            //         .selectAll('link')                                      // select simulation-div-allLink elements
+            //         .data(links, function(d) {
+            // 	return d;
+            // });
+            //                           // data key join because we're using transition
+            //     v.enter()                                       // if length.join > corresponding DOM elements
+            //         .append('line') 
+            //         .merge(v)                                        // create new corresponding DOM elements
+            //         .transition()
+            //         .attr("x1", function (d) { return d.source.x; })     // create svg on the DOM element selection
+            //         .attr("y1", function (d) { return d.source.y; })
+            //         .attr("x2", function (d) { return d.target.x; })
+            //         .attr("y2", function (d) { return d.target.y; })
+
+            // //UPDATE NODES
+            var w = d3.select('svg')
                 .selectAll('link')                                      // select simulation-div-allLink elements
-                .data(links, function (d) { return d; })                  // data key join because we're using transition
-
-            linkSelection.transition()
-                .exit()
-                .remove()
-
-            linkSelection.enter()                                       // if length.join > corresponding DOM elements
-                .append('link')                                         // create new corresponding DOM elements
-                .merge(linkSelection)                                   // merge the newly created elements with earlier selection
+                .data(nodes, function (d) {return d;})
                 .transition()
-                .attr("x1", function (d) { return d.source.x; })     // create svg on the DOM element selection
-                .attr("y1", function (d) { return d.source.y; })
-                .attr("x2", function (d) { return d.target.x; })
-                .attr("y2", function (d) { return d.target.y; })
-
-            //UPDATE NODES
-            d3.select('#simulation')
-                .select('div')
-                .selectAll('node')
-                .data(nodes, function (d) { return d; })                 // data key join because we're using transition
-                .transition()
-                .attr("r", function (d) { return d.r; });
+                    .attr('cx', function (d) {return d.x;})
+                    .attr('cy', function (d) {return d.y;})
+                    .attr("r", function (d) {return d.r;});
         }
 
         function initiate() {
-
-            updateNodes()
+            // updateNodes()
             createNodes()
             updateLinks()
             simulate.on("tick", visualise);                             // when this runs, the nodes array is updated again
@@ -226,7 +253,6 @@
                     sourceNode.power = sourceNode.power - 10 % targetNode.power;
                     targetNode.power = targetNode.power + 10 % targetNode.power
                 }
-
             });
 
             // for each link, 
