@@ -1,15 +1,138 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>De/Centralise</title>
-    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="d3/d3.js"></script>
   </head>
 
   <body>
-    <h1></h1>
-    <canvas></canvas>
-    <script src="https://d3js.org/d3.v5.js"></script>
-    <script src="main.js"></script>
+    <div id="simulation"></div>
+    <div>
+        <button onClick="centralise();">Centralise</button>
+    </div>
+    <div>
+        <button onClick="decentralise();">Decentralise</button>
+    </div>
+    
+    <!-- JAVASCRIPT FILE -->
+    <script type="text/javascript">
+
+        var w = window.innerWidth - 20,
+            h = window.innerHeight - 60;
+
+        var svg = d3.select("#simulation").append("svg:svg")
+            .attr("width", w)
+            .attr("height", h);
+
+
+        //a node would need the following properties: 
+        // x, y, vx, vy, index, power, 
+        // nodes = simulate.nodes;
+        var numNodes = 100;
+        var nodes = d3.range(numNodes).map(function(d, i) {
+            return {
+                radius: Math.random() * 5,
+                category: i % 3,
+                x: Math.random() * w,
+                y: Math.random() * h,
+                power: Math.random() * 200,
+            }; 
+        });
+
+        console.log(nodes);
+        
+        // Broadly speaking there are 4 steps to setting up a force 
+        // simulation: 
+        // 1. create an array of objects
+        // 2. call forceSimulation, passing in the array of objects
+        // 3. add one or more force functions (e.g. forceManyBody, 
+        //    forceCenter, forceCollide) to the system
+        // 4. set up a callback function to update the element positions 
+        //    after each tick
+
+        //Steps 3 & 4 of setting up force simulation: 
+        var simulate = d3.forceSimulation()
+                //forceManyBody gets all nodes to attract or repel each other
+            .force('charge', d3.forceManyBody().strength(10))
+                //forceCenter gets all nodes to be attracted to one point
+            .force('gravity', d3.forceCenter(w / 2, h / 2))
+            // .force('collision', d3.forceCollide().radius(function(d) {
+            //     return d.radius * 1.5
+            // }).iterations(10))
+            .force('collision', d3.forceCollide(20).strength(.3))//.iterations(10))
+                //forceX gets
+            // .force('x', d3.forceX().x(function(d) {
+            //     return xScale(d.value);
+            // }))
+                //forceLink gets to maintain a strength or a distance between 
+                //the linked nodes.
+            // .force('link', d3.forceLink().links(links))
+                
+
+        function ticked() {
+            var u = d3.select('svg')
+                .selectAll('circle')
+                .data(nodes)
+
+            u.enter()
+                .append('circle')
+                .attr('r', function(d) {return d.radius})//return Math.sqrt(d.power) / 3.14})
+                .merge(u)
+                .attr('cx', function(d) {
+                return d.x
+                })
+                .attr('cy', function(d) {
+                return d.y
+                })
+
+            u.exit().remove()
+        }
+
+        
+        // var links = simulate.links;
+            
+        // add to the nodes and links arrays. 
+        // links.push({});
+        // nodes.push({});
+
+        
+        // Run this when Decentralise button is clicked    
+        function centralise() {
+            //pick some nodes and provide more power
+            //gather power from neighboring nodes
+            //add links to these nodes from neightboring nodes
+            //delete links to other neighboring nodes
+        };
+
+        // Run this when Decentralise button is clicked
+        function decentralise() {
+            simulate
+                .force('charge', d3.forceManyBody().strength(30))
+                .on();
+            //decrease power from nodes with power 
+            //redistribute power to neighboring nodes
+            //delete links from central nodes
+            //add links among neighboring nodes
+        };
+        
+        //step 2 of setting up a force simulation: call 
+        //forceSimulation, passing in the array of objects  
+        simulate
+            // simulation.nodes([nodes])
+            // If nodes is specified, sets the simulation’s nodes to the 
+            // specified array of objects, initializing their positions 
+            // and velocities if necessary, and then re-initializes any 
+            // bound forces; returns the simulation.
+            .nodes(nodes)
+            // simulation.on(typenames, [listener]) 
+            // use simulation.on to listen for tick events as the simulation runs.
+            // If listener is specified, sets the event listener 
+            // for the specified typenames and returns this simulation.
+            // typenames can be "tick" or "end"
+            .on("tick", ticked);
+
+        console.log(nodes);
+    </script>
   </body>
 </html>
