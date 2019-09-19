@@ -3,27 +3,9 @@
 
 <head>
     <meta charset="utf-8" />
-
     <title>De/Centralise</title>
-
 </head>
-<style>
-    /* rect {
-        fill: none;
-        pointer-events: all;
-    } */
-
-    /* .circle {
-        fill: #222;
-    }
-
-    .line {
-        stroke: #333;
-    } */
-</style>
-
 <body>
-    <!-- <div id="simulation"></div> -->
     <div>
         <button onclick="centralise();">Centralise</button>
     </div>
@@ -47,7 +29,7 @@
             .append("rect")
             .attr("width", w)
             .attr("height", h)
-            .style('fill', "#000000")
+            .style('fill', "#FFFFFF")
 
         var nodes = d3.range(40).map(d => {
             var p = Math.floor((Math.random() * 100) + 1)
@@ -56,14 +38,13 @@
                 x: (Math.random() * w) - p / 5,
                 y: (Math.random() * h) - p / 5,
                 linkedNum: 0,
-                r: p / 5,
-                linkLength: p * 4, //* (Math.sqrt(w * w + h * h )) / 100,
+                r: p / 10,
+                linkLength: p * 4,
                 linkNum: p / 10,
             }
         })
 
         function createNodes() {
-            //CREATE NODES
             d3.select('svg')
                 .selectAll('circle')
                 .data(nodes)
@@ -74,7 +55,6 @@
                 .attr('cy', function (d) { return d.y; })
                 .attr('r', function (d) { return d.r; })
                 .style("fill", "#ff0000");
-            // .attr('fill', 000000)
         }
 
         function createLinks() {
@@ -82,8 +62,7 @@
                 .selectAll('line')
                 .data(links, function (d) { return d })
                 .enter()
-                .append('line')
-                // .merge(v)                                        
+                .append('line')                                      
                 .transition()
                 .attr("x1", function (d) { return d.source.x; })
                 .attr("y1", function (d) { return d.source.y; })
@@ -129,8 +108,6 @@
                         return link.source == node.index || link.target == node.index;
                     });
 
-                    console.log('node.linkedNum < node.linkNum linksWhereNodeIsSourceOrTarget', linksWhereNodeIsSourceOrTarget);
-
                     var unavailableTargets = [];
 
                     unavailableTargets.push(node)
@@ -140,13 +117,9 @@
                         else if (link.target == node.index) { unavailableTargets.push(link.source) }
                     });
 
-                    console.log('unavailableTargets', unavailableTargets);
-
                     var availableTargets = nodes.filter(function (node) {                                               //List Targets available for new links
                         return !unavailableTargets.includes(node);
                     })
-
-                    console.log('availableTargets', availableTargets);
 
                     availableTargets.forEach(function (target) {
                         var x = target.x - node.x
@@ -163,23 +136,18 @@
                             target.linkedNum = target.linkedNum + 1;
                         }
                     })
-
-                    console.log('new links', links);
-
                 }
             });
         }
 
         function visualise() {
-            //REMOVE AND ADD LINKS
-
             var u = d3.select('svg')
                 .selectAll('line')
                 .data(links, function (d) { return d });
 
             u.enter()
                 .append('line')
-                // .merge(v)                                        
+                .merge(u)                                        
                 // .transition()
                 .attr("x1", function (d) {
                     return d.source.x;
@@ -191,24 +159,6 @@
 
             u.exit().remove();
 
-            // i don't know whow much will help
-
-            // u = d3.select('svg')
-            //                 .selectAll('line')                                      
-            //                 .data(links, function(d) {return d})
-
-            //             u.enter()                                       
-            //                 .append('line')
-            //                 .merge(u)                                     
-            //                 .transition()
-            //                     .attr("x1", function (d) {return d.source.x;})     
-            //                     .attr("y1", function (d) {return d.source.y;})
-            //                     .attr("x2", function (d) {return d.target.x;})
-            //                     .attr("y2", function (d) {return d.target.y;})
-            //                     .style("stroke",  "#444444");
-
-            //             u.exit().remove()
-
             v = d3.select('svg')
                 .selectAll('circle')
                 .data(nodes, function (d) { return d })
@@ -216,66 +166,21 @@
             v.enter()
                 .append('circle')
                 .merge(v)
-                // .transition()
                 .attr('cx', function (d) { return d.x; })
                 .attr('cy', function (d) { return d.y; })
                 .attr('r', function (d) { return d.r; })
                 .style("fill", "#ff0000");
 
             v.exit().remove()
-
-            // d3.select('svg')
-            //     .selectAll('line')
-            //     .data(links, function (d) { return d })
-            //     .exit().remove()
-
-            // var v = d3.select('svg')
-            //     .selectAll('link')                                      
-            //     .data(links, function(d) {
-            //         return d
-            //     });
-
-            // v.enter()                                       
-            //     .append('line') 
-            //     .merge(v)                                        
-            //     .transition()
-            //     .attr("x1", function (d) {
-            //         console.log(d);
-            //         return d.source.x;
-            //     })     
-            //     .attr("y1", function (d) {return d.source.y;})
-            //     .attr("x2", function (d) {return d.target.x;})
-            //     .attr("y2", function (d) {return d.target.y;})
-
-            // var w = d3.select('svg')
-            //     .selectAll('node')
-            //     .data(nodes)             
-
-            // w.enter()
-            //     .append('circle')
-            //     .transition()
-            //     .attr('cx', function (d) { return d.x; })
-            //     .attr('cy', function (d) { return d.y; })
-            //     .attr('r', function (d) { return d.r; });
-
-            // // //UPDATE NODES
-            // d3.select('svg')
-            //     .selectAll('circle')                                      
-            //     .data(nodes, function (d) {return d;})
-            //     .transition()
-            //         .attr("cx", function (d) {return d.x;})
-            //         .attr("cy", function (d) {return d.y;})
-            //         .attr("r", function (d) {return d.r;})
         }
 
         function initiate() {
             createNodes()
             updateLinks()
-            // createLinks()
             simulation = d3.forceSimulation(nodes)
                 .force('charge', d3.forceManyBody().strength(10))
                 .force('gravity', d3.forceCenter(w / 2, h / 2))
-                .force('collision', d3.forceCollide(20).strength(.3))
+                .force('collision', d3.forceCollide(40).strength(.9))
                 .force('link', d3.forceLink().links(links))
                 .on("tick", visualise);
         }
@@ -284,27 +189,25 @@
 
         function centralise() {
 
-            console.log(nodes);
-
             links.forEach(function (link) {
 
                 var sourceNode = link.source;
                 var targetNode = link.target;
 
-                if (sourceNode.power >= targetNode.power && targetNode.power > 10) {
+                if (sourceNode.power > targetNode.power && targetNode.power > 10) {
                     sourceNode.power = sourceNode.power + 10 % targetNode.power;
                     targetNode.power = targetNode.power - 10 % targetNode.power;
                 } else if (sourceNode.power < targetNode.power && sourceNode.power > 10) {
-                    sourceNode.power = sourceNode.power - 10 % targetNode.power;
-                    targetNode.power = targetNode.power + 10 % targetNode.power
+                    sourceNode.power = sourceNode.power - 10 % sourceNode.power;
+                    targetNode.power = targetNode.power + 10 % sourceNode.power
                 }
 
-                sourceNode.r = sourceNode.power / 5;
-                sourceNode.linkLength = sourceNode.power * 4; //* (Math.sqrt(w * w + h * h )) / 100,
+                sourceNode.r = sourceNode.power / 10;
+                sourceNode.linkLength = sourceNode.power * 4;
                 sourceNode.linkNum = sourceNode.power / 10;
 
-                targetNode.r = targetNode.power / 5;
-                targetNode.linkLength = targetNode.power * 4; //* (Math.sqrt(w * w + h * h )) / 100,
+                targetNode.r = targetNode.power / 10;
+                targetNode.linkLength = targetNode.power * 4;
                 targetNode.linkNum = targetNode.power / 10;
 
                 nodes[link.source.index] = sourceNode;
@@ -312,7 +215,6 @@
 
             });
 
-            // updateNodes()
             updateLinks()
             simulation.nodes(nodes);
             simulation.force("link").links(links);
@@ -327,20 +229,20 @@
                 var sourceNode = link.source;
                 var targetNode = link.target;
 
-                if (sourceNode.power >= targetNode.power && targetNode.power > 10) {
-                    sourceNode.power = sourceNode.power - 10 % targetNode.power;
-                    targetNode.power = targetNode.power + 10 % targetNode.power;
-                } else if (sourceNode.power < targetNode.power && sourceNode.power > 10) {
+                if (sourceNode.power > targetNode.power) {
+                    sourceNode.power = sourceNode.power - 10 % sourceNode.power;
+                    targetNode.power = targetNode.power + 10 % sourceNode.power;
+                } else if (sourceNode.power < targetNode.power) {
                     sourceNode.power = sourceNode.power + 10 % targetNode.power;
                     targetNode.power = targetNode.power - 10 % targetNode.power
                 }
 
-                sourceNode.r = sourceNode.power / 5;
-                sourceNode.linkLength = sourceNode.power * 4; //* (Math.sqrt(w * w + h * h )) / 100,
+                sourceNode.r = sourceNode.power / 10
+                sourceNode.linkLength = sourceNode.power * 4;
                 sourceNode.linkNum = sourceNode.power / 10;
 
-                targetNode.r = targetNode.power / 5;
-                targetNode.linkLength = targetNode.power * 4; //* (Math.sqrt(w * w + h * h )) / 100,
+                targetNode.r = targetNode.power / 10;
+                targetNode.linkLength = targetNode.power * 4;
                 targetNode.linkNum = targetNode.power / 10;
 
                 nodes[link.source.index] = sourceNode;
