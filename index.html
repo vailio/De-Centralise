@@ -32,7 +32,9 @@
             .attr("height", h)
             .style('fill', "#FFFFFF")
 
-        var nodes = d3.range(40).map(d => {
+            var distMultiplier = 1;
+
+        var nodes = d3.range(100).map(d => {
             var p = Math.floor((Math.random() * 100) + 10)
             return {
                 power: p,
@@ -40,7 +42,7 @@
                 y: (Math.random() * h) - p / 5,
                 linkedNum: 0,
                 r: p / 10,
-                linkLength: p * 4,
+                linkLength: p * distMultiplier,
                 linkNum: Math.floor(p / 10),
             }
         })
@@ -68,14 +70,14 @@
                     if (link.source == node || link.target == node) { return link };
                 });
 
-                if (node.linkedNum > node.linkNum) { // delete links from less powerful neighbors 
+                if (node.linkedNum >= node.linkNum) { // delete links from less powerful neighbors 
 
                     linksOfNode.forEach(function (link) {
 
                         var otherNode = link.source != node ? link.source : link.target;
 
-                        if (node.linkedNum > node.linkNum
-                            && otherNode.linkedNum > otherNode.linkNum) {
+                        if (node.linkedNum >= node.linkNum
+                            ) {
                             _.pull(links, link);
                             _.pull(linksOfNode, link);
                             node.linkedNum = node.linkedNum - 1;
@@ -197,11 +199,11 @@
                 }
 
                 sourceNode.r = sourceNode.power / 10;
-                sourceNode.linkLength = sourceNode.power * 4;
+                sourceNode.linkLength = sourceNode.power * distMultiplier;
                 sourceNode.linkNum = Math.floor(sourceNode.power / 10);
 
                 targetNode.r = targetNode.power / 10;
-                targetNode.linkLength = targetNode.power * 4;
+                targetNode.linkLength = targetNode.power * distMultiplier;
                 targetNode.linkNum = Math.floor(targetNode.power / 10);
 
                 nodes[link.source.index] = sourceNode;
@@ -232,11 +234,11 @@
                 }
 
                 sourceNode.r = sourceNode.power / 10
-                sourceNode.linkLength = sourceNode.power * 4;
+                sourceNode.linkLength = sourceNode.power * distMultiplier;
                 sourceNode.linkNum = Math.floor(sourceNode.power / 10);
 
                 targetNode.r = targetNode.power / 10;
-                targetNode.linkLength = targetNode.power * 4;
+                targetNode.linkLength = targetNode.power * distMultiplier;
                 targetNode.linkNum = Math.floor(targetNode.power / 10);
 
                 nodes[link.source.index] = sourceNode;
