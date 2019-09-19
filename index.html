@@ -40,16 +40,9 @@
             .attr("width", w)
             .attr("height", h);
 
-        // const minDistance = 40;
-        // const maxDistance = 60;
-        // const minDistance2 = minDistance * minDistance;
-        // const maxDistance2 = maxDistance * maxDistance;
+        var link = d3.select("svg").append("line").selectAll("line")
+        var node = d3.select("svg").append("circle").selectAll("circle");
 
-
-        //a node would need the following properties: 
-        // x, y, vx, vy, index, power, 
-        // nodes = simulate.nodes;
-        
         var numNodes = 100;
         var nodes = d3.range(numNodes).map(function(d, i) {
             return {
@@ -61,10 +54,12 @@
             }; 
         });
 
+        var numLinks = 5;
         var links = [];
 
+        while 
+
         function linkGenerator() {
-            // links.splice(0, links.length)
             for (let i = 0; i < numNodes; ++i) {
                 for (let j = i + 1; j < numNodes; ++j) {
                     const pi = nodes[i];
@@ -73,20 +68,8 @@
                     const dy = pi.y - pj.y;
                     const d2 = dx * dx + dy * dy;
                     if (d2 < 500) {
-                        // context.globalAlpha = d2 > minDistance2 ? (maxDistance2 - d2) / (maxDistance2 - minDistance2) : 1;
-                    //     context.beginPath();
-                    //     context.moveTo(pi.x, pi.y);
-                    //     context.lineTo(pj.x, pj.y);
                         link = {source: pi, target: pj}
                         d3.merge(links, link);
-                    //     // exchange colors on contact
-                    //     if(pi.color != pj.color){
-                    //     pj.color = pi.color;
-                    //     }
-                    //     context.strokeStyle = pi.color;
-                                            
-                    //     context.stroke();
-                                
                     }
                 
                 }
@@ -100,38 +83,15 @@
         console.log(links);
 
         console.log(nodes);
-        
-        // Broadly speaking there are 4 steps to setting up a force 
-        // simulation: 
-        // 1. create an array of objects
-        // 2. call forceSimulation, passing in the array of objects
-        // 3. add one or more force functions (e.g. forceManyBody, 
-        //    forceCenter, forceCollide) to the system
-        // 4. set up a callback function to update the element positions 
-        //    after each tick
 
-        //Steps 3 & 4 of setting up force simulation: 
         var simulate = d3.forceSimulation(nodes)
-                //forceManyBody gets all nodes to attract or repel each other
             .force('charge', d3.forceManyBody().strength(10))
-                //forceCenter gets all nodes to be attracted to one point
             .force('gravity', d3.forceCenter(w / 2, h / 2))
-            // .force('collision', d3.forceCollide().radius(function(d) {
-            //     return d.radius * 1.5
-            // }).iterations(10))
-            .force('collision', d3.forceCollide(20).strength(.3))//.iterations(10))
-                //forceX gets
-            // .force('x', d3.forceX().x(function(d) {
-            //     return xScale(d.value);
-            // }))
-                //forceLink gets to maintain a strength or a distance between 
-                //the linked nodes.
+            .force('collision', d3.forceCollide(20).strength(.3))
             .force('link', d3.forceLink().links(links))
             .on("tick", ticked);
 
             function updateLinks() {
-
-                // linkGenerator();
 
                 var u = d3.select('svg')
                         .selectAll('line')
@@ -164,7 +124,7 @@
 
                 v.enter()
                 .append('circle')
-                .attr('r', 5)//function(d) {return d.radius})//return Math.sqrt(d.power) / 3.14})
+                .attr('r', 5)
                 .merge(v)
                 .attr('cx', function(d) {
                 return d.x
@@ -176,69 +136,32 @@
                 v.exit().remove()
             }
 
+            d3.interval(function() {
+                update(d3.shuffle(alphabet)
+                    .slice(0, Math.floor(Math.random() * 26))
+                    .sort());
+            }, 1500);
+
             function ticked() {
-                
-                updateLinks()
-                updateNodes()
-                // console.log(links);
-                
-                linkGenerator()
+                node.attr("cx", function(d) { return d.x; })
+                    .attr("cy", function(d) { return d.y; })
+
+                link.attr("x1", function(d) { return d.source.x; })
+                    .attr("y1", function(d) { return d.source.y; })
+                    .attr("x2", function(d) { return d.target.x; })
+                    .attr("y2", function(d) { return d.target.y; });
             }
 
-
-        // function ticked() {
-        //     d3.select('svg')
-        //         .selectAll('circle')
-        //         .data(nodes)
-        //         .enter()
-        //         .append('circle')
-        //         .attr('r', function(d) {return d.radius})//return Math.sqrt(d.power) / 3.14})
-        //         .merge(u)
-        //         .attr('cx', function(d) {
-        //         return d.x
-        //         })
-        //         .attr('cy', function(d) {
-        //         return d.y
-        //         })
-
-        //     d3.select('svg')
-        //         .selectAll('circle')
-        //         .data(nodes)
-        //         .exit().remove()
-
-        //     d3.select('svg')
-        //         .selectAll('line')
-        //         .enter()
-        //         .append('line')
-        //         .data([links])
-        //         .attr("x1", function(d) { return d.source.x; })
-        //         .attr("y1", function(d) { return d.source.y; })
-        //         .attr("x2", function(d) { return d.target.x; })
-        //         .attr("y2", function(d) { return d.target.y; })
-
-        //     d3.select('svg')
-        //         .selectAll('line')
-        //         .data(links)
-        //         .exit().remove()
-        // }
-
         
-        // var links = simulate.links;
-            
-        // add to the nodes and links arrays. 
-        // links.push({});
-        // nodes.push({});
-
-        
-        // Run this when Decentralise button is clicked    
+          
         function centralise() {
             //pick some nodes and provide more power
             //gather power from neighboring nodes
             //add links to these nodes from neightboring nodes
             //delete links to other neighboring nodes
+            //run the simulation again.
         };
 
-        // Run this when Decentralise button is clicked
         function decentralise() {
             simulate
                 .force('charge', d3.forceManyBody().strength(30))
@@ -247,26 +170,8 @@
             //redistribute power to neighboring nodes
             //delete links from central nodes
             //add links among neighboring nodes
+            //run the simulation again
         };
-        
-        //step 2 of setting up a force simulation: call 
-        //forceSimulation, passing in the array of objects  
-        // simulate
-            // simulation.nodes([nodes])
-            // If nodes is specified, sets the simulation’s nodes to the 
-            // specified array of objects, initializing their positions 
-            // and velocities if necessary, and then re-initializes any 
-            // bound forces; returns the simulation.
-            // .nodes(nodes)
-            // .links(links)
-            // simulation.on(typenames, [listener]) 
-            // use simulation.on to listen for tick events as the simulation runs.
-            // If listener is specified, sets the event listener 
-            // for the specified typenames and returns this simulation.
-            // typenames can be "tick" or "end"
-            // .on("tick", ticked);
-
-        // console.log(nodes);
     </script>
   </body>
 </html>
